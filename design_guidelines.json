@@ -1,0 +1,156 @@
+{
+  "project_name": "Freeman Mobile Cleaning",
+  "design_philosophy": {
+    "identity": "The Industrial Professional",
+    "core_values": [
+      "Reliability (High Contrast)",
+      "Efficiency (Dense Information)",
+      "Trust (Clean Layouts)"
+    ],
+    "vibe": "Uber for Cleaning but more robust. Construction-grade reliability meets hospitality-grade service."
+  },
+  "typography": {
+    "font_family": {
+      "heading": "Barlow Condensed, sans-serif",
+      "body": "Inter, sans-serif"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight uppercase",
+      "h2": "text-3xl md:text-4xl font-bold tracking-tight uppercase",
+      "h3": "text-xl md:text-2xl font-semibold uppercase",
+      "body": "text-base md:text-lg leading-relaxed",
+      "caption": "text-sm font-medium tracking-wide text-muted-foreground uppercase"
+    },
+    "weights": {
+      "heading": "700",
+      "body_regular": "400",
+      "body_medium": "500",
+      "body_bold": "600"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#FFC107",
+        "foreground": "#1A1A1A",
+        "hover": "#F59E0B"
+      },
+      "secondary": {
+        "DEFAULT": "#18181B",
+        "foreground": "#FAFAF9",
+        "hover": "#27272A"
+      },
+      "background": {
+        "DEFAULT": "#FAFAF9",
+        "paper": "#FFFFFF",
+        "dark": "#1A1A1A"
+      },
+      "text": {
+        "main": "#09090B",
+        "muted": "#52525B",
+        "inverted": "#FFFFFF"
+      },
+      "accent": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444"
+      }
+    },
+    "usage_rules": {
+      "primary": "Use for primary CTAs, active states, and high-visibility highlights.",
+      "secondary": "Use for structural elements, footers, and secondary actions.",
+      "background": "Cream/White for main content areas to maintain a clean, professional look.",
+      "gradients": "FORBIDDEN. Use flat, solid colors only."
+    }
+  },
+  "layout": {
+    "grid_system": {
+      "mobile": "grid-cols-1 gap-4 p-4",
+      "tablet": "grid-cols-2 gap-6 p-6",
+      "desktop": "grid-cols-4 gap-8 p-8"
+    },
+    "spacing": {
+      "section_padding": "py-12 md:py-20",
+      "component_gap": "gap-4"
+    },
+    "containers": {
+      "main": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "narrow": "max-w-3xl mx-auto px-4"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#FFC107] text-[#1A1A1A] hover:bg-[#F59E0B] rounded-sm font-bold uppercase tracking-wider shadow-sm active:translate-y-0.5 transition-all",
+      "secondary": "bg-[#18181B] text-white hover:bg-[#27272A] rounded-sm font-medium uppercase tracking-wide",
+      "outline": "border-2 border-[#18181B] text-[#18181B] hover:bg-[#18181B] hover:text-white rounded-sm font-bold uppercase"
+    },
+    "cards": {
+      "service": "bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md hover:border-[#FFC107] transition-all group cursor-pointer",
+      "booking": "bg-white border border-gray-100 rounded-xl shadow-sm p-4",
+      "admin_stat": "bg-white border-l-4 border-[#FFC107] shadow-sm p-6"
+    },
+    "inputs": {
+      "default": "border-gray-300 focus:border-[#FFC107] focus:ring-[#FFC107] rounded-md bg-white",
+      "file_upload": "border-2 border-dashed border-gray-300 hover:border-[#FFC107] bg-gray-50 rounded-lg p-8 text-center cursor-pointer transition-colors"
+    },
+    "navigation": {
+      "mobile_bottom": "fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 h-16 flex justify-around items-center z-50",
+      "admin_sidebar": "bg-[#18181B] text-white w-64 min-h-screen hidden md:block"
+    }
+  },
+  "assets": {
+    "images": {
+      "hero": {
+        "url": "https://images.unsplash.com/photo-1757924461488-ef9ad0670978?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHw0fHxtb2Rlcm4lMjBsaXZpbmclMjByb29tJTIwc3BhcmtsaW5nJTIwY2xlYW4lMjBicmlnaHR8ZW58MHx8fHwxNzcyODA1NDk4fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Sparkling clean living room"
+      },
+      "services": {
+        "vehicle": "https://images.unsplash.com/photo-1760827797819-4361cd5cd353?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwxfHxjYXIlMjB3YXNoJTIwZGV0YWlsaW5nJTIwc2VydmljZSUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NzI4MDU1MTF8MA&ixlib=rb-4.1.0&q=85",
+        "home": "https://images.unsplash.com/photo-1742483359033-13315b247c74?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwxfHxob3VzZSUyMGNsZWFuaW5nJTIwc2VydmljZSUyMHByb2Zlc3Npb25hbCUyMGR1c3Rpbmd8ZW58MHx8fHwxNzcyODA1NTEzfDA&ixlib=rb-4.1.0&q=85",
+        "garden": "https://images.unsplash.com/photo-1683316924890-6a8c5ab10d29?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTF8MHwxfHNlYXJjaHwxfHxnYXJkZW5lciUyMGxhbmRzY2FwaW5nJTIwcHJvZmVzc2lvbmFsJTIwbGF3biUyMG1vd2VyfGVufDB8fHx8MTc3MjgwNTUxNHww&ixlib=rb-4.1.0&q=85",
+        "office": "https://images.unsplash.com/photo-1730701878011-a423ec61c328?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxjb21tZXJjaWFsJTIwb2ZmaWNlJTIwY2xlYW5pbmclMjBzZXJ2aWNlJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc3MjgwNTUxNXww&ixlib=rb-4.1.0&q=85",
+        "laundry": "https://images.unsplash.com/photo-1746240126295-64b0028593b6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NjZ8MHwxfHNlYXJjaHw0fHxsYXVuZHJ5JTIwc2VydmljZSUyMGNsb3RoZXMlMjBmb2xkZWQlMjBiYXNrZXR8ZW58MHx8fHwxNzcyODA1NTE2fDA&ixlib=rb-4.1.0&q=85",
+        "general_worker": "https://images.unsplash.com/photo-1581578949510-fa7315c4c350?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxob3VzZSUyMGNsZWFuaW5nJTIwc2VydmljZSUyMHByb2Zlc3Npb25hbCUyMGR1c3Rpbmd8ZW58MHx8fHwxNzcyODA1NTEzfDA&ixlib=rb-4.1.0&q=85"
+      },
+      "placeholders": {
+        "logo": "Use text 'FREEMAN' in Barlow Condensed Bold, 4xl",
+        "user_avatar": "https://ui.shadcn.com/avatars/01.png"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px, crisp edges"
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-300 ease-in-out",
+    "hover_effects": "hover:translate-y-[-2px] hover:shadow-lg",
+    "page_transition": {
+      "initial": { "opacity": 0, "y": 10 },
+      "animate": { "opacity": 1, "y": 0 },
+      "exit": { "opacity": 0, "y": -10 }
+    }
+  },
+  "accessibility": {
+    "contrast": "Ensure text on Yellow background is ALWAYS Black (#1A1A1A), never White.",
+    "focus_states": "focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC107]",
+    "aria_labels": "Required for all icon-only buttons"
+  },
+  "instructions_to_main_agent": [
+    "1. IMPLEMENTATION ORDER: Components -> Layouts -> Pages -> Logic.",
+    "2. THEME SETUP: Update tailwind.config.js to match the 'Industrial Professional' palette immediately.",
+    "3. MOBILE FIRST: Always verify layouts on mobile viewport width (375px) first.",
+    "4. ADMIN PANEL: Should be treated as a separate 'App' within the app. Use a different layout wrapper (SidebarLayout).",
+    "5. BOOKING FLOW: Use a 'Wizard' or 'Stepper' pattern. Do not show one giant form.",
+    "6. IMAGES: Use the provided Unsplash URLs. Map them intelligently to the 22 services.",
+    "7. DO NOT BREAK BACKEND: The tRPC/Drizzle backend is sacred. Only touch frontend files.",
+    "8. FILE UPLOAD: Use a visual drag-and-drop zone, even on mobile (tap to select)."
+  ],
+  "universal_guidelines": [
+    "You tend to converge toward generic outputs. Avoid this.",
+    "Create depth through layered design elements.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Never use AI assistant Emoji characters."
+  ]
+}
