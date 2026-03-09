@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Lock, ChevronLeft } from "lucide-react";
 
-const ADMIN_EMAIL = "acemayeson8@gmail.com";
-const ADMIN_PASSWORD = "acemayeson8@gmail.com";
+const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL || "acemayeson8@gmail.com";
+const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || "acemayeson8@gmail.com";
 
 export default function AdminLogin() {
   const navigate = useNavigate();

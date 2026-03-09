@@ -100,8 +100,8 @@ async def create_booking(booking: BookingCreate):
     )
 
 @api_router.get("/bookings", response_model=List[BookingResponse])
-async def get_bookings():
-    bookings = await db.bookings.find({}, {"_id": 0}).sort("created_at", -1).to_list(1000)
+async def get_bookings(limit: int = 100, skip: int = 0):
+    bookings = await db.bookings.find({}, {"_id": 0}).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     return bookings
 
 @api_router.get("/bookings/{booking_id}", response_model=BookingResponse)
