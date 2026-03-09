@@ -1,31 +1,28 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Lock, ChevronLeft } from "lucide-react";
 
-// Hardcoded admin credentials
 const ADMIN_EMAIL = "acemayeson8@gmail.com";
 const ADMIN_PASSWORD = "acemayeson8@gmail.com";
 
 export default function AdminLogin() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
     try {
       if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        // Store auth state in localStorage
         localStorage.setItem("freeman_admin_auth", JSON.stringify({
           email: ADMIN_EMAIL,
           isAdmin: true,
@@ -33,7 +30,7 @@ export default function AdminLogin() {
         }));
         
         toast.success("Login successful!");
-        setLocation("/admin-dashboard");
+        navigate("/admin-dashboard");
       } else {
         toast.error("Invalid credentials. Please try again.");
       }
@@ -46,11 +43,10 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-[#18181B] flex flex-col">
-      {/* Header */}
       <header className="bg-[#18181B] border-b border-gray-800 py-4">
         <div className="max-w-md mx-auto px-4 flex items-center justify-between">
           <button 
-            onClick={() => setLocation("/")}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             data-testid="back-to-home-btn"
           >
@@ -67,10 +63,8 @@ export default function AdminLogin() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-2xl border-0 overflow-hidden bg-white">
-          {/* Card Header */}
           <div className="bg-[#18181B] text-white p-8 text-center">
             <div className="w-16 h-16 bg-[#FFC107] rounded-sm flex items-center justify-center mx-auto mb-4">
               <Lock className="text-[#1A1A1A]" size={32} />
@@ -81,7 +75,6 @@ export default function AdminLogin() {
             <p className="text-gray-400 text-sm mt-1">Freeman Management System</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleLogin} className="p-6 md:p-8 space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 uppercase tracking-wide">
@@ -130,19 +123,12 @@ export default function AdminLogin() {
                 "Login"
               )}
             </Button>
-
-            <div className="text-center pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Demo Credentials</p>
-              <p className="text-sm text-gray-600 font-mono">Email: acemayeson8@gmail.com</p>
-              <p className="text-sm text-gray-600 font-mono">Password: acemayeson8@gmail.com</p>
-            </div>
           </form>
         </Card>
       </main>
 
-      {/* Footer */}
       <footer className="py-4 text-center">
-        <p className="text-gray-500 text-sm">&copy; 2026 Freeman Mobile Cleaning</p>
+        <p className="text-gray-500 text-sm">© 2026 Freeman Mobile Cleaning</p>
       </footer>
     </div>
   );

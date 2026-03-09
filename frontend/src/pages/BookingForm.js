@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
-import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useLocation, useSearch } from "wouter";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import { 
   Loader2, Upload, Check, ChevronLeft, ChevronRight, X,
   User, MapPin, Calendar, Camera, FileCheck, Car, Home as HomeIcon, 
   Building2, Leaf, Trash2, Wrench, TreeDeciduous, Tractor, 
   Flower2, Bath, Hotel, Building, Sofa, BedDouble, Settings
 } from "lucide-react";
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const SERVICES = [
   { id: "mobile-carwash", name: "Mobile CarWash", icon: Car },
@@ -35,6 +38,7 @@ const SERVICES = [
   { id: "sofa-cleaning", name: "Sofa Cleaning", icon: Sofa },
   { id: "mattress-cleaning", name: "Mattress Cleaning", icon: BedDouble },
   { id: "car-engine-cleaning", name: "Car Engine Cleaning", icon: Settings },
+  { id: "window-cleaning", name: "Window Cleaning", icon: Building2 },
 ];
 
 const STEPS = [
@@ -46,14 +50,14 @@ const STEPS = [
 ];
 
 export default function BookingForm() {
-  const [, setLocation] = useLocation();
-  const searchString = useSearch();
-  const searchParams = new URLSearchParams(searchString);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service") || "";
 
   const [step, setStep] = useState(1);
-  const [images, setImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -71,22 +75,12 @@ export default function BookingForm() {
     }
   }, [preselectedService]);
 
-  const createBooking = trpc.bookings.create.useMutation({
-    onSuccess: () => {
-      toast.success("Booking submitted successfully!");
-      setStep(6); // Success step
-    },
-    onError: (error) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e) => {
     const files = e.target.files;
     if (!files) return;
 
@@ -101,18 +95,18 @@ export default function BookingForm() {
     newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setImagePreviews((prev) => [...prev, event.target?.result as string]);
+        setImagePreviews((prev) => [...prev, event.target?.result]);
       };
       reader.readAsDataURL(file);
     });
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = (index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const validateStep = (currentStep: number) => {
+  const validateStep = (currentStep) => {
     switch (currentStep) {
       case 1:
         if (!formData.name || !formData.email || !formData.phone || !formData.address) {
@@ -152,13 +146,23 @@ export default function BookingForm() {
   };
 
   const handleSubmit = async () => {
-    createBooking.mutate({
-      ...formData,
-      images: imagePreviews,
-    });
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${API}/bookings`, {
+        ...formData,
+        images: imagePreviews,
+      });
+      toast.success("Booking submitted successfully!");
+      setStep(6);
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error(error.response?.data?.detail || "Failed to submit booking. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const getServiceName = (id: string) => {
+  const getServiceName = (id) => {
     return SERVICES.find(s => s.id === id)?.name || id;
   };
 
@@ -168,7 +172,7 @@ export default function BookingForm() {
       <header className="bg-[#18181B] text-white py-4">
         <div className="max-w-3xl mx-auto px-4 flex items-center justify-between">
           <button 
-            onClick={() => setLocation("/")}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             data-testid="back-to-home-btn"
           >
@@ -181,11 +185,11 @@ export default function BookingForm() {
             </div>
             <span className="font-bold tracking-tight uppercase" style={{ fontFamily: 'Barlow Condensed' }}>FREEMAN</span>
           </div>
-          <div className="w-16" /> {/* Spacer for centering */}
+          <div className="w-16" />
         </div>
       </header>
 
-      {/* Progress Steps */}
+      {/* Progress */}
       {step < 6 && (
         <div className="bg-white border-b border-gray-200 py-4 overflow-x-auto">
           <div className="max-w-3xl mx-auto px-4">
@@ -223,7 +227,7 @@ export default function BookingForm() {
       {/* Form Content */}
       <main className="max-w-3xl mx-auto px-4 py-6 md:py-10">
         <Card className="shadow-lg border-0 overflow-hidden">
-          {/* Step 1: Personal Info */}
+          {/* Step 1 */}
           {step === 1 && (
             <div className="p-6 md:p-8" data-testid="step-personal-info">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6 uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -290,7 +294,7 @@ export default function BookingForm() {
             </div>
           )}
 
-          {/* Step 2: Service Selection */}
+          {/* Step 2 */}
           {step === 2 && (
             <div className="p-6 md:p-8" data-testid="step-service-selection">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6 uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -346,7 +350,7 @@ export default function BookingForm() {
             </div>
           )}
 
-          {/* Step 3: Schedule */}
+          {/* Step 3 */}
           {step === 3 && (
             <div className="p-6 md:p-8" data-testid="step-schedule">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6 uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -409,7 +413,7 @@ export default function BookingForm() {
             </div>
           )}
 
-          {/* Step 4: Photo Upload */}
+          {/* Step 4 */}
           {step === 4 && (
             <div className="p-6 md:p-8" data-testid="step-photos">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2 uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -441,7 +445,6 @@ export default function BookingForm() {
                 </p>
               </div>
 
-              {/* Image Previews */}
               {imagePreviews.length > 0 && (
                 <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {imagePreviews.map((preview, index) => (
@@ -484,7 +487,7 @@ export default function BookingForm() {
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
+          {/* Step 5 */}
           {step === 5 && (
             <div className="p-6 md:p-8" data-testid="step-confirmation">
               <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6 uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -545,11 +548,11 @@ export default function BookingForm() {
                 </Button>
                 <Button
                   onClick={handleSubmit}
-                  disabled={createBooking.isPending}
+                  disabled={isSubmitting}
                   className="bg-[#10B981] text-white hover:bg-[#059669] h-12 px-8 font-bold uppercase tracking-wider"
                   data-testid="submit-booking-btn"
                 >
-                  {createBooking.isPending ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 animate-spin" size={18} />
                       Submitting...
@@ -565,7 +568,7 @@ export default function BookingForm() {
             </div>
           )}
 
-          {/* Success Step */}
+          {/* Success */}
           {step === 6 && (
             <div className="p-8 md:p-12 text-center" data-testid="booking-success">
               <div className="w-20 h-20 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-6">
@@ -578,7 +581,7 @@ export default function BookingForm() {
                 Thank you for choosing Freeman Mobile Cleaning. We'll contact you shortly to confirm your booking.
               </p>
               <Button
-                onClick={() => setLocation("/")}
+                onClick={() => navigate("/")}
                 className="bg-[#FFC107] text-[#1A1A1A] hover:bg-[#F59E0B] h-12 px-8 font-bold uppercase tracking-wider"
                 data-testid="back-home-btn"
               >

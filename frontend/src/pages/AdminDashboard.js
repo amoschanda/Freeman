@@ -1,41 +1,27 @@
 import { useEffect, useState } from "react";
-import { trpc } from "@/lib/trpc";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import axios from "axios";
 import { 
   Loader2, LogOut, Eye, EyeOff, ChevronRight, 
   Calendar, Clock, MapPin, Phone, Mail, User,
   CheckCircle, XCircle, AlertCircle, ClipboardList, X, Image
 } from "lucide-react";
 
-type BookingStatus = "pending" | "approved" | "completed" | "cancelled";
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
-interface Booking {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  serviceType: string;
-  date: string;
-  time: string;
-  description?: string;
-  images?: string;
-  status: BookingStatus;
-  createdAt: string;
-}
-
-const STATUS_CONFIG: Record<BookingStatus, { label: string; color: string; icon: typeof CheckCircle }> = {
+const STATUS_CONFIG = {
   pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800 border-yellow-300", icon: AlertCircle },
   approved: { label: "Approved", color: "bg-blue-100 text-blue-800 border-blue-300", icon: CheckCircle },
   completed: { label: "Completed", color: "bg-green-100 text-green-800 border-green-300", icon: CheckCircle },
   cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800 border-red-300", icon: XCircle },
 };
 
-const SERVICE_NAMES: Record<string, string> = {
+const SERVICE_NAMES = {
   "mobile-carwash": "Mobile CarWash",
   "carwash": "CarWash",
   "landscaping": "LandScaping",
@@ -57,65 +43,73 @@ const SERVICE_NAMES: Record<string, string> = {
   "sofa-cleaning": "Sofa Cleaning",
   "mattress-cleaning": "Mattress Cleaning",
   "car-engine-cleaning": "Car Engine Cleaning",
+  "window-cleaning": "Window Cleaning",
 };
 
 export default function AdminDashboard() {
-  const [, setLocation] = useLocation();
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const navigate = useNavigate();
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [showImages, setShowImages] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check authentication on mount
   useEffect(() => {
     const authData = localStorage.getItem("freeman_admin_auth");
     if (!authData) {
-      setLocation("/admin-login");
+      navigate("/admin-login");
       return;
     }
     try {
       const parsed = JSON.parse(authData);
       if (parsed.isAdmin) {
         setIsAuthed(true);
+        fetchBookings();
       } else {
-        setLocation("/admin-login");
+        navigate("/admin-login");
       }
     } catch {
-      setLocation("/admin-login");
+      navigate("/admin-login");
     }
-  }, [setLocation]);
+  }, [navigate]);
 
-  const { data: bookings, isLoading, refetch } = trpc.bookings.list.useQuery(undefined, {
-    enabled: isAuthed,
-  });
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API}/bookings`);
+      setBookings(response.data);
+    } catch (error) {
+      console.error("Failed to fetch bookings:", error);
+      toast.error("Failed to load bookings");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const updateStatus = trpc.bookings.updateStatus.useMutation({
-    onSuccess: () => {
+  const handleStatusChange = async (bookingId, newStatus) => {
+    try {
+      await axios.patch(`${API}/bookings/${bookingId}`, { status: newStatus });
       toast.success("Status updated successfully");
-      refetch();
-      if (selectedBooking) {
-        // Update the selected booking in local state
-        setSelectedBooking(prev => prev ? { ...prev, status: updateStatus.variables?.status as BookingStatus } : null);
+      fetchBookings();
+      if (selectedBooking && selectedBooking.id === bookingId) {
+        setSelectedBooking(prev => ({ ...prev, status: newStatus }));
       }
-    },
-    onError: (error) => {
-      toast.error(`Error: ${error.message}`);
-    },
-  });
-
-  const handleStatusChange = (bookingId: number, newStatus: BookingStatus) => {
-    updateStatus.mutate({ id: bookingId, status: newStatus });
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      toast.error("Failed to update status");
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("freeman_admin_auth");
     toast.success("Logged out successfully");
-    setLocation("/");
+    navigate("/");
   };
 
-  const getServiceName = (id: string) => SERVICE_NAMES[id] || id;
+  const getServiceName = (id) => SERVICE_NAMES[id] || id;
 
-  const parseImages = (imagesStr?: string): string[] => {
+  const parseImages = (imagesStr) => {
     if (!imagesStr) return [];
     try {
       return JSON.parse(imagesStr);
@@ -124,16 +118,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const filteredBookings = bookings?.filter(b => 
+  const filteredBookings = bookings.filter(b => 
     statusFilter === "all" ? true : b.status === statusFilter
-  ) || [];
+  );
 
   const statusCounts = {
-    all: bookings?.length || 0,
-    pending: bookings?.filter(b => b.status === "pending").length || 0,
-    approved: bookings?.filter(b => b.status === "approved").length || 0,
-    completed: bookings?.filter(b => b.status === "completed").length || 0,
-    cancelled: bookings?.filter(b => b.status === "cancelled").length || 0,
+    all: bookings.length,
+    pending: bookings.filter(b => b.status === "pending").length,
+    approved: bookings.filter(b => b.status === "approved").length,
+    completed: bookings.filter(b => b.status === "completed").length,
+    cancelled: bookings.filter(b => b.status === "cancelled").length,
   };
 
   if (!isAuthed) {
@@ -167,11 +161,11 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Stats Bar */}
+      {/* Filters */}
       <div className="bg-white border-b border-gray-200 py-4 overflow-x-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-3 min-w-max">
-            {(["all", "pending", "approved", "completed", "cancelled"] as const).map((status) => (
+            {["all", "pending", "approved", "completed", "cancelled"].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
@@ -179,7 +173,7 @@ export default function AdminDashboard() {
                   statusFilter === status
                     ? status === "all"
                       ? "bg-[#18181B] text-white"
-                      : STATUS_CONFIG[status as BookingStatus].color.replace('100', '500').replace('800', 'white')
+                      : STATUS_CONFIG[status].color.replace('100', '500').replace('800', 'white')
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
                 data-testid={`filter-${status}`}
@@ -196,7 +190,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {isLoading ? (
           <div className="flex justify-center items-center h-96">
@@ -207,7 +201,7 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Bookings List */}
+            {/* List */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-[#1A1A1A] uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
@@ -220,8 +214,8 @@ export default function AdminDashboard() {
 
               {filteredBookings.length > 0 ? (
                 <div className="space-y-3">
-                  {filteredBookings.map((booking: Booking) => {
-                    const StatusIcon = STATUS_CONFIG[booking.status].icon;
+                  {filteredBookings.map((booking) => {
+                    const StatusIcon = STATUS_CONFIG[booking.status]?.icon || AlertCircle;
                     const images = parseImages(booking.images);
                     return (
                       <Card
@@ -236,11 +230,11 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <h3 className="font-bold text-[#1A1A1A] truncate">{booking.name}</h3>
-                              <Badge className={`${STATUS_CONFIG[booking.status].color} border text-xs`}>
+                              <Badge className={`${STATUS_CONFIG[booking.status]?.color} border text-xs`}>
                                 <StatusIcon size={12} className="mr-1" />
-                                {STATUS_CONFIG[booking.status].label}
+                                {STATUS_CONFIG[booking.status]?.label}
                               </Badge>
                               {images.length > 0 && (
                                 <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -252,7 +246,7 @@ export default function AdminDashboard() {
                             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
                               <span className="flex items-center gap-1">
                                 <ClipboardList size={14} className="text-[#FFC107]" />
-                                {getServiceName(booking.serviceType)}
+                                {getServiceName(booking.service_type)}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Calendar size={14} />
@@ -278,11 +272,10 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* Details Panel */}
+            {/* Details */}
             <div className="lg:col-span-1">
               {selectedBooking ? (
                 <Card className="sticky top-24 overflow-hidden" data-testid="booking-details-panel">
-                  {/* Panel Header */}
                   <div className="bg-[#18181B] text-white p-4 flex items-center justify-between">
                     <h3 className="font-bold uppercase tracking-tight" style={{ fontFamily: 'Barlow Condensed' }}>
                       Booking Details
@@ -290,15 +283,12 @@ export default function AdminDashboard() {
                     <button 
                       onClick={() => setSelectedBooking(null)}
                       className="text-gray-400 hover:text-white transition-colors"
-                      aria-label="Close"
                     >
                       <X size={20} />
                     </button>
                   </div>
 
-                  {/* Panel Content */}
                   <div className="p-4 space-y-4">
-                    {/* Customer Info */}
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-[#FFC107] rounded-full flex items-center justify-center flex-shrink-0">
@@ -306,8 +296,8 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <p className="font-bold text-[#1A1A1A]">{selectedBooking.name}</p>
-                          <Badge className={`${STATUS_CONFIG[selectedBooking.status].color} border text-xs mt-1`}>
-                            {STATUS_CONFIG[selectedBooking.status].label}
+                          <Badge className={`${STATUS_CONFIG[selectedBooking.status]?.color} border text-xs mt-1`}>
+                            {STATUS_CONFIG[selectedBooking.status]?.label}
                           </Badge>
                         </div>
                       </div>
@@ -330,10 +320,9 @@ export default function AdminDashboard() {
 
                     <hr className="border-gray-200" />
 
-                    {/* Service Details */}
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">Service</h4>
-                      <p className="font-bold text-[#FFC107]">{getServiceName(selectedBooking.serviceType)}</p>
+                      <p className="font-bold text-[#FFC107]">{getServiceName(selectedBooking.service_type)}</p>
                       <div className="flex gap-4 text-sm text-gray-600">
                         <span className="flex items-center gap-1">
                           <Calendar size={14} />
@@ -351,7 +340,6 @@ export default function AdminDashboard() {
                       )}
                     </div>
 
-                    {/* Images Section */}
                     {parseImages(selectedBooking.images).length > 0 && (
                       <>
                         <hr className="border-gray-200" />
@@ -383,12 +371,11 @@ export default function AdminDashboard() {
 
                     <hr className="border-gray-200" />
 
-                    {/* Status Update */}
                     <div>
                       <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Update Status</h4>
                       <select
                         value={selectedBooking.status}
-                        onChange={(e) => handleStatusChange(selectedBooking.id, e.target.value as BookingStatus)}
+                        onChange={(e) => handleStatusChange(selectedBooking.id, e.target.value)}
                         className="w-full h-10 px-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFC107] focus:border-transparent"
                         data-testid="status-select"
                       >
